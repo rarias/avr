@@ -1,6 +1,13 @@
 ;------------------------------------------------------------------
 ; colección de macros para microcontroladores AVR
 ;------------------------------------------------------------------
+; Sintaxis:
+; 	.macro NOMBRE_MACRO
+; 		; cuerpo de la macro
+;		; los parámetros de la macro se referencian como
+;		; @0 (1er parámetro), @1 (2do parámetro), etc.
+; 	.endm
+;------------------------------------------------------------------
 
 ;------------------------------------------------------------------
 ; input: resuelve si usa "in"/"lds" según la dirección del registro
