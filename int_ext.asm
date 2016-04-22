@@ -1,40 +1,38 @@
 ;------------------------------------------------------------------
-; AVR - Configuración y manejo de interrupción externa 0
+; AVR - ConfiguraciÃ³n y manejo de interrupciÃ³n externa 0
 ;------------------------------------------------------------------
 ; Atmega328p, clock interno 8MHz, fusibles: E:0xFF H:0xE9 L:0x62
 ;------------------------------------------------------------------
-
-.include "m328pdef.inc"	; definición de registros, bits y constantes del micro 
+.include "m328pdef.inc"	; definiciÃ³n de registros, bits y constantes del micro 
 
 ;------------------------------------------------------------------
 ; macros
 ;------------------------------------------------------------------
 
-.macro	input	; @0= destino {r0, ... , r31}
-				; @1= fuente I/0 ($0000-$FFFF)
+.macro	input		; @0= destino {r0, ... , r31}
+			; @1= fuente I/0 ($0000-$FFFF)
 .if	@1<0x40
-		in		@0,@1	; si dir del reg de E/S <0x40 uso "in"
+	in	@0,@1	; si dir del reg de E/S <0x40 uso "in"
 .else
-		lds		@0,@1	; sino uso "lds"
+	lds	@0,@1	; sino uso "lds"
 .endif
 .endm
 
-
-.macro	output	; @0= destino I/O ($0000-$FFFF)
-				; @1= fuente, cte o r0..r31
+.macro	output		; @0= destino I/O ($0000-$FFFF)
+			; @1= fuente, cte o r0..r31
 .if	@0<0x40
-		out		@0,@1	; si dir del reg de E/S <0x40 uso "out"
+	out	@0,@1	; si dir del reg de E/S <0x40 uso "out"
 .else
-		sts		@0,@1	; sino uso "sts"
+	sts	@0,@1	; sino uso "sts"
 .endif
 .endm
 
 ;------------------------------------------------------------------
-; periféricos
+; perifÃ©ricos
 ;------------------------------------------------------------------
-.equ	LED_VE = 2		; Cátodo del LED en B.2 (se prende con 0)
+.equ	LED_VE = 2	; CÃ¡todo del LED en B.2 (se prende con 0)
 .equ	PULSADOR = 2 	; Apretar el pulsador hace que pinD.2==0 y
-						; al soltarlo el pull-up lleva a pinD.2==1
+			; al soltarlo el pull-up lleva a pinD.2==1
 
 ;------------------------------------------------------------------
 ; variables de registro
@@ -48,7 +46,7 @@
 ; codigo
 ;------------------------------------------------------------------
 		.cseg
-		rjmp	RESET			; interrupción del reset
+		rjmp	RESET			; interrupciÃ³n del reset
 
 		.org	INT0addr
 		rjmp	ISR_INT_EXT_0	; ocurre flanco de bajada en pulsador
@@ -58,62 +56,58 @@
 ;------------------------------------------------------------------
 		.org INT_VECTORS_SIZE	; (salteo todos los vectores de int)
 RESET:
-		ldi		t0,HIGH(RAMEND)	; inicializo stack
-		out		SPH,t0
-		ldi		t0,LOW(RAMEND)
-		out		SPL,t0
+		ldi	t0,HIGH(RAMEND)	; inicializo stack
+		out	SPH,t0
+		ldi	t0,LOW(RAMEND)
+		out	SPL,t0
 
-		sbi		DDRB,LED_VE		; B.LED_VE es una salida
-		sbi		PORTB,LED_VE	; LED apagado
+		sbi	DDRB,LED_VE		; B.LED_VE es una salida
+		sbi	PORTB,LED_VE	; LED apagado
 
-		cbi		DDRD,PULSADOR 	; pin_D.PULSADOR es entrada del micro
-		sbi		PORTB,PULSADOR	; conecto resistor de pull-up (al soltar 
+		cbi	DDRD,PULSADOR 	; pin_D.PULSADOR es entrada del micro
+		sbi	PORTB,PULSADOR	; conecto resistor de pull-up (al soltar 
 								; pulsador, el pinD.PULSADOR va a VCC).
 
 		input	t0,EICRA		; configuro int. ext. 0 x flanco de bajada
 		andi	t0,~((1<<ISC01)|(1<<ISC00))
-		ori		t0,(1<<ISC01)|(0<<ISC00)
+		ori	t0,(1<<ISC01)|(0<<ISC00)
 		output	EICRA,t0		
 		
 		input	t0,EIMSK
-		ori		t0,(1<<INT0)	; habilito int. externa 0
+		ori	t0,(1<<INT0)	; habilito int. externa 0
 		output	EIMSK,t0
 
-		sei						; habilitación global de interrupciones
+		sei			; habilitaciÃ³n global de interrupciones
 
+X_SIEMPRE:	brts	PULSADOR_APRETADO
+		rjmp	X_SIEMPRE	; si flag T==0, no pasa nada
 
-X_SIEMPRE:
-		brts	PULSADOR_APRETADO
-		rjmp	X_SIEMPRE		; si flag T==0, no pasa nada
-
-PULSADOR_APRETADO:				; sino, alguien oprimió el pulsador
-		clt						; limpio el evento (y lo proceso)
-
+PULSADOR_APRETADO:			; sino, alguien oprimiÃ³ el pulsador
+		clt			; limpio el evento (y lo proceso)
 		rcall	DEMORA_100mS	; espero 100 mili-segundos
 
 		sbic	PIND,PULSADOR	; miro el pinD.PULSADOR
-		rjmp	X_SIEMPRE		; si volvió a uno antes de 100mS, es ruido
+		rjmp	X_SIEMPRE	; si volviÃ³ a uno antes de 100mS, es ruido
 
-		in		t0,PORTB		; sino, se apretó el pulsador en serio
-		ldi		t1,(1<<LED_VE)
-		eor		t0,t1			; conmuto el estado del LED_VE
-		out		PORTB,t0
-		rjmp	X_SIEMPRE		; y vuelvo al ciclo principal del programa
+		in	t0,PORTB	; sino, se apretÃ³ el pulsador en serio
+		ldi	t1,(1<<LED_VE)
+		eor	t0,t1		; conmuto el estado del LED_VE
+		out	PORTB,t0
+		rjmp	X_SIEMPRE	; y vuelvo al ciclo principal del programa
 
 ;------------------------------------------------------------------
 ; fin del programa principal
 ;------------------------------------------------------------------
 
 ;------------------------------------------------------------------
-; Rutina de servicio de interrupción externa 0.
+; Rutina de servicio de interrupciÃ³n externa 0.
 ; Al ocurrir un flanco de bajada (se oprime el pulsador, o rebotes)
 ; se devulve el flag SREG.T en 1.
 ;------------------------------------------------------------------
 ISR_INT_EXT_0:
-		set		; flag T <- 1
-		reti	; re-habilitación global de int. y vuelve al prog.
-				; principal 
-
+		set	; flag T <- 1
+		reti	; re-habilitaciÃ³n global de int. y vuelve al prog.
+			; principal 
 
 ;------------------------------------------------------------------
 ; Rutina de demora de 100 mili-segundos.
@@ -123,32 +117,27 @@ DEMORA_100mS:
 		push	t0
 		push	t1
 		push	t2
-		in		t0,SREG
+		in	t0,SREG
 		push	t0
 
-		ldi		t0,26
-
-bucle_0:
-		ldi		t1,101
-bucle_1:
-		ldi		t2,101
-bucle_2:
-		dec		t2
+		ldi	t0,26
+bucle_0:	ldi	t1,101
+bucle_1:	ldi	t2,101
+bucle_2:	dec	t2
 		brne	bucle_2
-
-		dec		t1
+		
+		dec	t1
 		brne	bucle_1
-
-		dec		t0
+		
+		dec	t0
 		brne	bucle_0
 
-		pop		t0
-		out		SREG,t0
-		pop		t2
-		pop		t1
-		pop		t0
+		pop	t0
+		out	SREG,t0
+		pop	t2
+		pop	t1
+		pop	t0
 		ret
-
 ;------------------------------------------------------------------
-; fin del código
+; fin del cÃ³digo
 ;------------------------------------------------------------------
