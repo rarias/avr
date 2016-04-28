@@ -44,7 +44,7 @@ RESET:
 		sbi	PORTB,LED_VE	; LED apagado
 
 		cbi	DDRD,PULSADOR 	; pin_D.PULSADOR es entrada del micro
-		sbi	PORTB,PULSADOR	; conecto resistor de pull-up (al soltar 
+		sbi	PORTD,PULSADOR	; conecto resistor de pull-up (al soltar 
 								; pulsador, el pinD.PULSADOR va a VCC).
 
 		input	t0,EICRA		; configuro int. ext. 0 x flanco de bajada
