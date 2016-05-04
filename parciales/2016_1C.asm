@@ -64,10 +64,9 @@ NO_ES_MULT:
 CALCULA_FECHA:
 		mov		DD_FIN, DD_INI
 		mov		MM_FIN, MM_INI
-		mov		AA_FIN, AA_INI
+		mov		AA_FIN, AA_INI	; fecha final igual a la inicial
 
-		add		DD_FIN, DIAS_SUMADOS
-; la fecha final es la inicial mas los días sumados
+		add		DD_FIN, DIAS_SUMADOS	; sumo los días a la fecha final
 
 ; busco cuántos días tiene el mes actual
 		ldi		ZH, high(TABLA_DIAS_X_MES*2-1)
@@ -77,31 +76,31 @@ CALCULA_FECHA:
 		adc		ZH, AUX		; Z apunta a los días del mes
 
 BUCLE_CALCULA_FECHA:
-		lpm		DIAS_DEL_MES, Z+
+		lpm		DIAS_DEL_MES, Z+	
 		cpi		MM_FIN, 12
 		brne	PTR_A_SGTE_MES_OK
 
-		sbiw	ZH:ZL, 12	; Z apunta a los días de enero
+		sbiw	ZH:ZL, 12	; Z queda apuntando a los días del sgte. mes
 
 PTR_A_SGTE_MES_OK:
 		cp		DD_FIN, DIAS_DEL_MES
 		brlo	FIN_CALCULA_FECHA
 		breq	FIN_CALCULA_FECHA
 
-; DD_FIN tiene más días que los del mes actual, inc MM_FIN
+; DD_FIN tiene más días que los del mes actual,
 		inc		MM_FIN			; paso a sgte. mes
 		cpi		MM_FIN, 13
 		brlo	BUCLE_CALCULA_FECHA
 
-		ldi		MM_FIN, 1		; si siguiente mes es enero 
-		inc		AA_FIN			; incremnto año
+		ldi		MM_FIN, 1		; y si mes sgte. es enero 
+		inc		AA_FIN			; incremento año
 		rjmp	BUCLE_CALCULA_FECHA
 		
 FIN_CALCULA_FECHA:
 		ret
 
-; dias de los meses:    ene feb mar abr may jun jul ago sep oct nov dic
-TABLA_DIAS_X_MES:	.db	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+; dias de los meses:  ene feb mar abr may jun jul ago sep oct nov dic
+TABLA_DIAS_X_MES: .db 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 
 
 ;--------------------------------------------------------------
@@ -143,8 +142,11 @@ BUCLE_ORDENA:
 FIN_ORDENA:
 		ret
 
-; compara un elemento del vector con el siguiente,
-; si es menor, los intercambia y continúa comparando
+;--------------------------------------------------------------
+; compara un elemento del vector con el siguiente; si es menor,
+; los intercambia y continúa comparando.  Si el vector tiene N
+; elementos, se realizan N-1 comparaciones.
+;--------------------------------------------------------------
 BURBUJEA:
 		ldi		r18,N-1
 
@@ -161,13 +163,13 @@ BUCLE_INTERCAMBIA:
 FIN_BURBUJEA:
 		ret
 
-INTERCAMBIA:				; [-Z]=r20 Z++, [Z]=r19
-		inc		r17			; nro. de intercambios ++
-		sbiw	Z,1			; Z--
-		st		Z+, r20		; |r20|r19|...|
-		st		Z+, r19		;           Z
-		rjmp	BUCLE_INTERCAMBIA
-		
+INTERCAMBIA:                ; [-Z]=r20 Z++, [Z]=r19
+        inc     r17         ; nro. de intercambios ++
+        sbiw    Z,1         ; Z--
+        st      Z+, r20     ; |r20|r19|...|
+        st      Z+, r19	    ;           Z
+        rjmp    BUCLE_INTERCAMBIA
+
 ;--------------------------------------------------------------
 ; Ejercicio 4: sobre interrupciones
 ; i) a)
