@@ -38,12 +38,12 @@ BUCLE_MULTIPLO:
 		brcs	NO_ES_MULT
 		brne	BUCLE_MULTIPLO
 
-		set		; T7
+		set		; T=1, A es múltiplo de B
 FIN_MULT:
 		ret
 
 NO_ES_MULT:
-		clt
+		clt		; T=0, A no es múltiplo de B
 		rjmp	FIN_MULT
 
 ;--------------------------------------------------------------
@@ -70,11 +70,11 @@ CALCULA_FECHA:
 ; la fecha final es la inicial mas los días sumados
 
 ; busco cuántos días tiene el mes actual
-		ldi		ZH, low(TABLA_DIAS_X_MES*2-1)
+		ldi		ZH, high(TABLA_DIAS_X_MES*2-1)
 		ldi		ZL, low(TABLA_DIAS_X_MES*2-1)
 		clr		AUX
 		add		ZL, MM_FIN
-		add		ZH, AUX		; Z apunta a los días del mes
+		adc		ZH, AUX		; Z apunta a los días del mes
 
 BUCLE_CALCULA_FECHA:
 		lpm		DIAS_DEL_MES, Z+
