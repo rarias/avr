@@ -198,6 +198,7 @@ FIN_TEST_TX:
 		sbi		UCSRB,UDRIE
 
 		pop		t0
+		popw	X
 		popw	Z
 		ret
 
