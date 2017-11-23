@@ -8,6 +8,12 @@
 ;		; @0 (1er parámetro), @1 (2do parámetro), etc.
 ; 	.endm
 ;------------------------------------------------------------------
+; Nota:
+;		Algunas macros usan una variable "t0" que debe ser
+;	uno de los 16 registros altos (r16 ... r31). Para definir t0
+; como un registro usar la directiva:
+;.def t0 = r16
+;------------------------------------------------------------------
 
 ;------------------------------------------------------------------
 ; input: resuelve si usa "in"/"lds" según la dirección del registro
