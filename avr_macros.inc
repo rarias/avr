@@ -56,6 +56,27 @@
 		output	@0,r16
 .endm
 
+.macro	sbix	;	Set bit in Input/Output register eXtended
+				; @0= registro de E/S destino ($0000-$FFFF) @1=nro. de bit a setear
+.if @0<0x40
+		sbi		@0, @1
+.else	
+		input	t0, @0
+		ori		t0, (1<<@1)
+		output  @0, t0
+.endif
+.endm
+
+.macro	cbix	;	Clear bit in Input/Output register eXtended
+				; @0= registro de E/S destino ($0000-$FFFF) @1=nro. de bit a limpiar
+.if @0<0x40
+		cbi		@0, @1
+.else	
+		input	t0, @0
+		andi	t0, ~(1<<@1)
+		output  @0, t0
+.endif
+.endm
 
 .macro	pushw	;@0		; Pone el puntero @0 de 16 bits en la pila
 		push	@0L
