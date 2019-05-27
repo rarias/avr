@@ -70,11 +70,12 @@ VERSION:.byte	1			; nro. de versión del programa
 .def	ptr_tx_H = r9
 .def	bytes_a_tx = r10 	; nro. de bytes a transmitir desde el buffer
 .def	bytes_recibidos = r11
-.def	eventos = r12
-.equ	RX_SERIE = 0
 
 .def	t0	= r16			; variable global auxiliar
 .def	t1	= r17			; variable global auxiliar
+
+.def	eventos = r20
+.equ	EVENTO_RX_SERIE = 0
 
 ;-------------------------------------------------------------------------
 ; CODIGO
@@ -112,15 +113,18 @@ MAIN:							; Programa principal (bucle infinito)
 		tst		eventos			; Pasó algo?
 		breq	MAIN			;	nada
 
-		mov		t0, eventos		;	ocurrió un evento: el bit encendido indica
-		andi	t0, (1<<RX_SERIE)	;  el tipo de evento ocurrido.
-		breq	MAIN			
-	
-	; Por ahora: sólo chequeo recepciones de tramas x puerto serie
-		ldi		t0, ~(1<<RX_SERIE)
-		and		eventos, t0		; Borro el flag del evento recepción 
+		sbrc	eventos, EVENTO_RX_SERIE
+		rjmp	PROCESO_TRAMA_RX
+		
+		clr		eventos
+		rjmp	MAIN
 
-		clr		bytes_recibidos ; esto no es muy prolijo y trae problemas
+PROCESO_TRAMA_RX:
+		// Los datos recibidos x puerto serie están a partir del dirección RAM RX_BUF
+		// y terminan siempre con el caracter LF.   Además "bytes_recibidos" me dice
+		// cuántos bytes tiene la trama.
+		cbr		eventos,(1<<EVENTO_RX_SERIE)	; Limpio flag del evento
+		clr		bytes_recibidos					; limpio nro. de bytes recibidos porque no lo uso
 
 		lds		t0, RX_BUF		; miro el 1er caracter de la trama recibida
 		cpi		t0, '1'
@@ -228,7 +232,7 @@ ACA:
 		cpi		t0, LF
 		brne	FIN_ISR_RX_USART
 
-		ldi		t0,(1<<RX_SERIE)
+		ldi		t0,(1<<EVENTO_RX_SERIE)
 		or		eventos, t0
 
 FIN_ISR_RX_USART:
@@ -383,6 +387,7 @@ ACTIVA_TX_MSJ:						; habilita la int. de tx
 
 ;-------------------------------------------------------------------------
 ;  Recibe t0 y devuelve el ascii en r1|r0
+;  Por ejemplo, si t0=0xA3 devuelve r1='A'=0x41 r0='3'=0x33
 ;-------------------------------------------------------------------------
 BYTE_2_ASCII:
 			mov		r0,	t0
