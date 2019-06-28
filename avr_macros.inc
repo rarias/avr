@@ -53,7 +53,7 @@
 
 .macro	outi
 		ldi		t0,@1
-		output	@0,r16
+		output	@0,t0
 .endm
 
 .macro	sbix	;	Set bit in Input/Output register eXtended
